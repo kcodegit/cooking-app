@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
 import { RecipeService } from '../recipe.service';
-import { Ingredient } from 'src/app/shared/ingredient.model';
 
 @Component({
   selector: 'app-recipe-edit',
@@ -23,12 +22,13 @@ export class RecipeEditComponent implements OnInit {
   ngOnInit() {
     this.route.params.subscribe((params: Params) => {
       this.id = +params.id;
-      this.editMode = !isNaN(+params.id);
+      this.editMode = !isNaN(this.id);
       this.initForm();
     });
   }
 
   onSubmit() {
+    console.log('onSubmit', this.recipeForm.value);
     if (this.editMode) {
       this.recipeService.updateRecipe(this.id, this.recipeForm.value);
     } else {
@@ -42,23 +42,26 @@ export class RecipeEditComponent implements OnInit {
   }
 
   onAddIngredient() {
-    (this.recipeForm.get('recipeIngredients') as FormArray).push(
+    console.log('ingredients', this.recipeForm.get('ingredients'));
+    (this.recipeForm.get('ingredients') as FormArray).push(
       new FormGroup({
-        name: new FormControl(null),
+        name: new FormControl(null, Validators.required),
         amount: new FormControl(null, [Validators.required, Validators.pattern(/^[1-9]+[0-9]*$/)]),
       }),
     );
   }
 
   onDeleteIngredient(index: number) {
-    (this.recipeForm.get('recipeIngredients') as FormArray).removeAt(index);
+    (this.recipeForm.get('ingredients') as FormArray).removeAt(index);
   }
 
   private initForm() {
     let recipeName = '';
     let recipeImgPath = '';
     let recipeDesc = '';
-    const recipeIngredients = new FormArray([]);
+    const ingredients = new FormArray([]);
+
+    console.log('mode', this.editMode);
 
     if (this.editMode) {
       const recipe = this.recipeService.getRecipeById(this.id);
@@ -67,7 +70,7 @@ export class RecipeEditComponent implements OnInit {
       recipeDesc = recipe.description;
       if (recipe.ingredients) {
         for (const ingredient of recipe.ingredients) {
-          recipeIngredients.push(
+          ingredients.push(
             new FormGroup({
               name: new FormControl(ingredient.name, Validators.required),
               amount: new FormControl(ingredient.amount, [
@@ -84,7 +87,7 @@ export class RecipeEditComponent implements OnInit {
       name: new FormControl(recipeName, Validators.required),
       imagePath: new FormControl(recipeImgPath, Validators.required),
       description: new FormControl(recipeDesc, Validators.required),
-      recipeIngredients,
+      ingredients,
     });
   }
 }
