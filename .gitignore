@@ -46,4 +46,4 @@ testem.log
 Thumbs.db
 
 # config
-firebase.conf.json
+firebase.conf.js
